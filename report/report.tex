@@ -1,0 +1,65 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{tabularx}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\LARGE \bfseries Analyzing brain tumors using MRI scans \par}
+    \vspace{0.5cm}
+    {\Large Initial System Specification \par}
+
+    \vspace{2cm}
+
+    \begin{tabularx}{\textwidth}{@{} >{\bfseries}l X @{}}
+        Course:         & Software Engineering (SE)                                            \\
+        Programme:      & Informatics (INF), Semester 5, Academic Year 2026/2027               \\
+        Authors:        & Jakub Toporek, Zuzanna Safaryjska, Xawier Słupik, Mateusz Pyrek,     \\
+                        & Maciej Gajdziński, Oskar Bednarek, Eryk Borowiecki, Michał Głogowski \\
+        Created:        & 13.11.2026                                                           \\
+        Modified:       &                                                                      \\
+        Version:        & {[1.0.0]}                                                            \\
+        Classification: & Confidential                                                         \\
+    \end{tabularx}
+
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Document history}
+
+\noindent
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|l|l|l|X|}
+    \hline
+    \textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Approved by} & \textbf{Additional information} \\
+    \hline
+    1.0.0            & 2026-11-13    & JT, ZS          &                      & Initial document draft          \\
+    \hline
+\end{tabularx}
+
+\section{The introduction}
+
+\subsection{Primary Purpose}
+
+Magnetic Resonance Imaging (MRI) is a cornerstone of non-invasive oncology, providing unmatched soft-tissue contrast for detecting, staging, and monitoring solid tumors. We will use 4D images for 3D scans with time as a fourth dimension. We distinguish 4 different types of images for instance FLAIR, T1w, T1gd, T2w.
+
+Despite its clinical utility, 4D MRI evaluation is hampered by severe operational bottlenecks in legacy medical workflows. Diagnostic workstations predominantly rely on heavyweight, monolithic desktop software (e.g., OsiriX, Horos, 3D Slicer) installed on dedicated, high-spec clinical workstations within hospital intranets. This paradigm introduces significant friction.
+
+\subsection{Implementation}
+
+We decided to build a desktop app. We will be using Python with Napari framework to build robust and intuitive tool for 4D MRI visualization.
+
+\end{document}
