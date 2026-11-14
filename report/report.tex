@@ -1,7 +1,13 @@
 \documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[a4paper, margin=2.5cm]{geometry}
 \usepackage{tabularx}
+\usepackage{ltablex} % Pozwala tabelom tabularx łamać się na wiele stron
+\usepackage{amsmath}
 \usepackage{hyperref}
+
+\keepXColumns % Zachowuje szerokość kolumn X przy używaniu ltablex
 
 \hypersetup{
     colorlinks=true,
@@ -61,5 +67,126 @@ Despite its clinical utility, 4D MRI evaluation is hampered by severe operationa
 \subsection{Implementation}
 
 We decided to build a desktop app. We will be using Python with Napari framework to build robust and intuitive tool for 4D MRI visualization.
+
+\section{Project Dictionary}
+
+Standardized glossary of actors, data objects, conceptual entities, system functions, and workflows.
+
+\subsection{Core Project Dictionary Terms}
+
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{|>{\bfseries\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{2.9cm}|X|}
+    \hline
+    \textbf{Domain Term} & \textbf{Classification} & \textbf{Standardized Definition \& Operational Context} \\
+    \hline
+    \endfirsthead
+
+    \hline
+    \textbf{Domain Term} & \textbf{Classification} & \textbf{Standardized Definition \& Operational Context} \\
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{3}{|r|}{\textit{Continued on next page...}} \\
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    Clinical Annotator & Person (Actor) & A certified radiologist, resident, or trained medical specialist who inspects 4D MRI scans and delineates suspected neoplastic boundaries. \\
+    \hline
+    Reviewing Radiologist & Person (Actor) & A senior clinician responsible for inspecting submitted lesion masks, adjudicating ambiguous tissue margins, and officially signing off on ground truth. \\
+    \hline
+    Oncologist & Person (Actor) & An attending medical physician who reviews volumetric measurements and kinetic response curves to formulate clinical treatment strategies. \\
+    \hline
+    Research Consumer & Person (Actor) & A biomedical data scientist or researcher who retrieves anonymized, standardized masks and kinetic data to train and evaluate AI models. \\
+    \hline
+    System Administrator & Person (Actor) & A technical operator managing infrastructure, user directory synchronization, security credentials, storage policies, and audit logs. \\
+    \hline
+    4D MRI Dataset & Data Object & A multi-dimensional digital series representing a sequential collection of 3D spatial volumes captured across discrete temporal acquisition phases ($X \times Y \times Z \times T$). \\
+    \hline
+    DICOM Instance & Data Object & A standardized digital imaging object conforming to PS 3.10 of the DICOM specification, containing spatial pixel matrices and comprehensive metadata headers. \\
+    \hline
+    NIfTI Container & Data Object & A scientific file format (\texttt{.nii} / \texttt{.nii.gz}) commonly used in neuroimaging and computer vision research, storing voxel matrices with affine transformation matrices. \\
+    \hline
+    Voxel & Physical / Data & The elemental volumetric unit in a 3D/4D raster grid, representing a finite spatial sample ($\Delta x \times \Delta y \times \Delta z$) with a numerical magnetic resonance signal intensity value. \\
+    \hline
+    Annotation Mask & Data Object & A 3D or 4D spatial raster grid co-registered with the original MRI volume, where integer voxel values designate specific pathological tissue classifications. \\
+    \hline
+    DICOM-SEG & Data Object & A specialized multi-frame DICOM storage object designed to encapsulate binary or fractional segmentation masks, linked directly to the parent study UID. \\
+    \hline
+    Clinical Report Sheet & Data Object & A generated, non-editable document (PDF format) combining patient study metadata, representative cross-sections with tumor overlays, and kinetic graphs. \\
+    \hline
+    Carcinogenic Tissue & Conceptual Entity & Pathological biological tissue comprising neoplastic cells characterized by abnormal proliferation, microvascular leakiness, and altered perfusion dynamics. \\
+    \hline
+    Multi-Planar Reconstruction (MPR) & Conceptual Entity & The mathematical reslicing of a 3D volumetric array along three mutually orthogonal anatomical reference planes: Axial, Coronal, and Sagittal. \\
+    \hline
+    Region of Interest (ROI) & Conceptual Entity & A bounded 2D area (ROI) or 3D volume (VOI) delineated on an imaging study to restrict quantitative feature extraction and statistical analysis. \\
+    \hline
+    Time-Intensity Curve (TIC) & Conceptual Entity & A mathematical curve plotting the temporal progression of MR signal intensity $S(t)$ within a designated tissue region during contrast agent wash-in and wash-out. \\
+    \hline
+    Window and Level (W/L) & Conceptual Entity & A radiometric transfer function mapping wide 12-to-16-bit MR signal numbers to 8-bit display luminance. The Level sets the center; the Window sets the contrast range. \\
+    \hline
+    Look-Up Table (LUT) & Conceptual Entity & A predefined index mapping monochrome voxel intensities to color values (e.g., Hot Metal, Rainbow) to highlight subtle hemodynamic variations. \\
+    \hline
+    De-identification & Conceptual Entity & The algorithmic irreversible removal or pseudonymization of Protected Health Information (PHI) from DICOM headers to preserve patient confidentiality. \\
+    \hline
+    Cine Looping & Function & Continuous, automated cyclic sequential rendering of consecutive temporal frames ($t_0 \dots t_n$) at a user-defined refresh frequency (frames per second). \\
+    \hline
+    Crosshair Synchronization & Function & Interactive geometric link between orthogonal viewports: adjusting crosshair location in one plane repositions slices in the remaining two planes to match the 3D coordinate. \\
+    \hline
+    Voxel Painting & Function & Direct interactive raster editing allowing users to add or erase voxels from an active segmentation layer using customizable brush radiuses. \\
+    \hline
+    Threshold-Based Growing & Function & A semi-automated segmentation algorithm expanding outward from an initial seed voxel to encompass contiguous voxels within a bounded signal intensity interval. \\
+    \hline
+    Contour Interpolation & Function & Geometric shape morphing algorithm that generates intermediate 2D boundary polygons across unannotated slices between two manually drawn guide contours. \\
+    \hline
+    Volumetric Integration & Function & Automated summation of positive mask voxels multiplied by elementary voxel volume ($\Delta x \cdot \Delta y \cdot \Delta z$) to produce absolute tumor volume in cubic centimeters ($\text{cm}^3$). \\
+    \hline
+    Kinetic Classification & Function & Algorithmic categorization of Time-Intensity Curves into clinical hemodynamic profiles: Type I (Persistent), Type II (Plateau), or Type III (Wash-out). \\
+    \hline
+    Study Ingestion & Activity & The complete pipeline comprising file upload, structural verification, PHI de-identification, metadata indexing, and multi-resolution storage preparation. \\
+    \hline
+    Lesion Delineation & Activity & The end-to-end clinical task of detecting suspected neoplasms, defining category tags, and drawing precision volumetric boundaries across slices. \\
+    \hline
+    Perfusion Profiling & Activity & The sampling and quantitative extraction of temporal signal intensities across contrast phases to evaluate lesion malignancy indicators. \\
+    \hline
+    Quality Adjudication & Activity & The formal peer-review procedure wherein a senior radiologist compares multi-observer segmentations, resolves discrepancies, and signs off on final ground truth. \\
+    \hline
+    Data Serialization & Activity & The programmatic transformation of in-memory volumetric masks into standardized persistent file formats (DICOM-SEG, NIfTI, CSV). \\
+\end{tabularx}
+
+\subsection{Extended Technical \& Clinical Concepts}
+
+Additional domain-specific metrics, protocols, and architectural structures referenced across the system specification.
+
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{|>{\bfseries\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{2.9cm}|X|}
+    \hline
+    \textbf{Domain Term} & \textbf{Classification} & \textbf{Standardized Definition \& Operational Context} \\
+    \hline
+    \endfirsthead
+
+    \hline
+    \textbf{Domain Term} & \textbf{Classification} & \textbf{Standardized Definition \& Operational Context} \\
+    \hline
+    \endhead
+
+    \hline
+    \endlastfoot
+
+    DCE-MRI & Conceptual Entity & Dynamic Contrast-Enhanced MRI; a dynamic protocol capturing sequential volumes before, during, and after contrast agent administration to evaluate microvascular hemodynamics. \\
+    \hline
+    Dice Similarity Score & Conceptual Entity & A statistical overlap metric used during multi-observer review to quantify agreement between two segmentation masks. \\
+    \hline
+    Time-to-Peak (TTP) & Conceptual Entity & A quantitative perfusion metric measuring the elapsed time from contrast injection to maximum MR signal intensity within an ROI. \\
+    \hline
+    Maximum Enhancement Ratio & Conceptual Entity & A quantitative kinetic metric calculating the peak relative signal intensity increase compared to the pre-contrast baseline. \\
+    \hline
+    Octree Spatial Hierarchy & Data Object & A tree data structure used to partition 3D/4D volumetric datasets into multi-resolution chunks for progressive spatial rendering. \\
+    \hline
+    Audit Trail & Data Object & An immutable chronological log recording every voxel modification, user identifier, and timestamp for clinical traceability. \\
+\end{tabularx}
 
 \end{document}
