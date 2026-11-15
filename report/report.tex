@@ -196,64 +196,65 @@ Additional domain-specific metrics, protocols, and architectural structures refe
 
 \begin{tabularx}{\textwidth}{|l|X|X|}
 \hline
-ID  & Requirement                                                   & Acceptance Criteria \\ \hline
-FR1 & User can load images.                                         & Images are viewable in the browser. \\ \hline
-FR2 & Users can browse through the entire scan slicing and timing.  & All imaging is visible. \\ \hline
-FR3 & Users can highlight selected areas.                           & User-defined highlights appear over the images. Uses designated mouse pointer tools to highlight them. \\ \hline
-FR4 & Users can get the volume of selected areas.                   & Returns to the user the volume of the selection. \\ \hline
-FR5 & Users can see scan details (image dimensions, size, etc.).    & Can be inspected for any scanning via designated panel. \\ \hline
+ID  & Requirement & Acceptance Criteria \\ \hline
+FR1 & \textbf{Study Ingestion:} A \textit{Clinical Annotator} can load a \textit{4D MRI Dataset} (DICOM series, NIfTI, or NRRD). & Volumetric series are reconstructed and viewable in the browser without \textit{PHI} leakage when \textit{De-identification} is active. \\ \hline
+FR2 & \textbf{4D Navigation:} Users can browse through spatial slices across \textit{MPR} planes and temporal acquisition phases ($t_0 \dots t_n$). & All spatial cross-sections and dynamic time frames are accessible via manual scrubbing, \textit{Crosshair Synchronization}, or \textit{Cine Looping}. \\ \hline
+FR3 & \textbf{Lesion Delineation:} Users can delineate a \textit{Region of Interest (ROI/VOI)} to generate an \textit{Annotation Mask}. & Interactive and semi-automated tools (\textit{Voxel Painting}, \textit{Threshold-Based Growing}) render accurate overlays co-registered with the underlying MRI volume. \\ \hline
+FR4 & \textbf{Volumetric Integration:} Users can compute the physical volume of any delineated \textit{Annotation Mask}. & System calculates and displays absolute lesion volume in cubic centimeters ($\text{cm}^3$) based on elementary voxel spacing ($\Delta x \cdot \Delta y \cdot \Delta z$). \\ \hline
+FR5 & \textbf{Metadata Inspection:} Users can inspect study and spatial parameters (matrix dimensions, voxel spacing, acquisition phase). & Standardized metadata parsed from \textit{DICOM Instance} headers or NIfTI/NRRD headers are displayed in a dedicated inspection panel. \\ \hline
 \end{tabularx}
 
 \subsection{Non-functional requirements}
 
 \begin{tabularx}{\textwidth}{|l|X|X|}
 \hline
-ID  & Requirement                       & Acceptance Criteria \\ \hline
-NFR1 & Slice Scrubbing Responsiveness.  & Scrolling through 2D slices in Multi-Planar Reconstruction (MPR) viewports must maintain $\geq$ 60 FPS (sub-16 ms frame time). \\ \hline
-NFR2 & Lossless Pixel Fidelity.         & The application must never apply lossy compression or unintended bit-depth truncation to raw 12-bit/16-bit MRI intensities. \\ \hline
-NFR3 & Crash recoverability.            & Unsaved segmentation work must be protected against sudden process termination or power loss. In the event of an unexpected application crash, the Recovery Point Objective (RPO) is $<$ 60 seconds of annotation work. \\ \hline
-NFR4 & Keyboard-driven workflow.        & Common inspection and segmentation actions must be accessible without looking through several menus. \\ \hline
-NFR5 & Dataset speed.                   & Opening standard medical volumes must not bottleneck the user's workflow. Reconstructing of a file should be completed in $<$ 5s \\ \hline
+ID  & Requirement & Acceptance Criteria \\ \hline
+NFR1 & \textbf{Slice Scrubbing Responsiveness.} & Scrolling through 2D slices in \textit{Multi-Planar Reconstruction (MPR)} viewports must maintain $\geq$ 60 FPS (sub-16 ms frame time). \\ \hline
+NFR2 & \textbf{Lossless Pixel Fidelity.} & The application must never apply lossy compression or unintended bit-depth truncation to raw 12-bit/16-bit MRI signal intensities. \\ \hline
+NFR3 & \textbf{Crash Recoverability.} & Unsaved \textit{Annotation Masks} must be protected against sudden process termination or power loss, ensuring a Recovery Point Objective (RPO) of $<$ 60 seconds of delineation work. \\ \hline
+NFR4 & \textbf{Keyboard-Driven Workflow.} & Common inspection, \textit{Window and Level (W/L)} adjustments, and \textit{Lesion Delineation} actions must be accessible via shortcuts without navigating nested menus. \\ \hline
+NFR5 & \textbf{Dataset Ingestion Speed.} & \textit{Study Ingestion} and 3D/4D volumetric reconstruction of standard medical datasets must complete in $<$ 5 seconds. \\ \hline
 \end{tabularx}
 
 \section{File formats}
+
 \subsection{DICOM (.dcm)}
 \begin{itemize}
-    \item 1 file is equivalent to 1 image slice
-    \item File is a binary made up of 3 sections:
+    \item A single \textit{DICOM Instance} typically represents one 2D image slice (\textit{Pixel} matrix). Multiple instances are grouped into volumetric series and studies using the \textit{DICOM UID Hierarchy}.
+    \item The binary file structure consists of three main components:
     \begin{itemize}
-        \item Preamble (128 bytes + 4 bytes prefix) - first 128 bytes are for compatibility headers followed by text “DICM” (prefix).
-        \item Header - collection of tags (key-value pairs) with key defined as hex value. Stores data such as Rows / Columns, Pixel Spacing, Patient's Name and etc.
-        \item Pixel Data - actual image contents. each pixel is made up of 2 bytes stored in little endian (reverse byte order).
+        \item \textbf{Preamble (128 bytes + 4-byte prefix):} The initial 128 bytes are reserved for application compatibility headers, followed by the 4-byte ASCII magic string ``DICM''.
+        \item \textbf{Header:} A sequential collection of data elements (tags) indexed by hexadecimal group/element keys. Stores acquisition metadata, \textit{Spatial Coordinate System} parameters (\texttt{Pixel Spacing}, \texttt{Image Orientation}), and Protected Health Information (\textit{PHI}), which must be stripped during \textit{De-identification}.
+        \item \textbf{Pixel Data:} The raw intensity payload where each \textit{Pixel} is typically encoded as a 2-byte (16-bit) integer stored in little-endian byte order.
     \end{itemize}
 \end{itemize}
 
 \subsection{DICOM-SEG (.dcm)}
 \begin{itemize}
-    \item Works like a mask over the whole scan for highlighting selected areas. Is a multi-frame image storing data for each frame and each image.
-    \item For sake of storage compression uses BitsAllocated tag to store pixel data as 0 or 1.
+    \item A specialized multi-frame \textit{DICOM Instance} used during \textit{Data Serialization} to encapsulate binary or fractional \textit{Annotation Masks} co-registered with a parent study via matching \textit{DICOM UID Hierarchy} references.
+    \item Storage compression by setting the \texttt{BitsAllocated} tag to 1 bit, packing mask \textit{Voxels} as binary values (0 or 1).
 \end{itemize}
 
-\subsection{NIfTI (.nii / .nii.gz (compressed))}
+\subsection{NIfTI (.nii / .nii.gz)}
 \begin{itemize}
-    \item stands for Neuroimaging Informatics Technology Initiative. Initially created for brain MRI research, became the standard in medical image analysis.
-    \item consists of:
+    \item Neuroimaging Informatics Technology Initiative format; a widely adopted scientific standard (\textit{NIfTI Container}) for medical image analysis and AI model training.
+    \item Consists of two primary blocks:
     \begin{itemize}
-        \item Fixed header (348 bytes) -  in comparison to DICOM, the NIfTI header is much simpler. It contains no Personal Health Information. Defines matrix dimensions up to 7D, data types and transformation matrices (qform/sform) that map voxel indices into real-world coordinates in millimeters.
-        \item Data payload - a continuous binary block containing the entire 3D or 4D volume.
-        \item The .nii.gz extension - the exact same file, but compressed with gzip in order to reduce the file size.
+        \item \textbf{Fixed Header (348 bytes):} A compact binary structure free of patient \textit{PHI}. Defines matrix dimensions (up to 7D for \textit{4D MRI Datasets}), voxel data types, and affine transformation matrices (\texttt{qform}/\texttt{sform}) that map discrete \textit{Voxel} indices into a continuous physical \textit{Spatial Coordinate System} (in millimeters).
+        \item \textbf{Data Payload:} A contiguous binary block storing the entire 3D or 4D \textit{Voxel} array.
+        \item \textbf{Compression (\texttt{.nii.gz}):} Identical internal structure compressed with \texttt{gzip} to reduce storage and network transfer overhead.
     \end{itemize}
 \end{itemize}
 
 \subsection{NRRD (.nrrd)}
 \begin{itemize}
-    \item Nearly Raw Raster Data - lightweight and flexible format designed for storing N-dimensional medical and scientific raster data.
-    \item consists of:
+    \item Nearly Raw Raster Data; a lightweight, flexible format engineered for N-dimensional scientific and medical raster visualization (serving as the native format for 3D Slicer).
+    \item Consists of:
     \begin{itemize}
-        \item ASCII text header - a human readable text paragraph ending with a blank line storing information such as: type, dimension, axis size, spatial orientation vectors, origin point and data encoding (raw data or compressed using gzip).
-        \item Raw data - a multidimensional array stored right after the blank line separating the header section.
+        \item \textbf{ASCII Text Header:} A human-readable key-value header terminated by a blank line. Specifies tensor type, dimensionality, axis sizes, spatial orientation vectors, origin coordinates, and data encoding (raw or \texttt{gzip}-compressed).
+        \item \textbf{Raw Data:} A contiguous multidimensional \textit{Voxel} array immediately following the blank separator line.
     \end{itemize}
-    \item purpose: serves as the native working format for 3D slicer and is widely used in 3D visualization. It handles complex data and overlapping segmentation masks really well.
+    \item \textbf{Operational Context:} Used for complex multi-label \textit{Annotation Masks} and overlapping \textit{Regions of Interest (ROI/VOI)} during 3D rendering workflows.
 \end{itemize}
 
 \end{document}
